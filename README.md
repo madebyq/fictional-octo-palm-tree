@@ -122,6 +122,30 @@ owns sample app state; `main/app_main.c` owns the BSP/LVGL/FreeRTOS integration.
 `host/simulator.c` is a terminal adapter, not an emulator. Swap the BSP/shell to
 port the framework without rewriting the app callbacks.
 
+## GitHub Copilot usage
+
+[Repository instructions](.github/copilot-instructions.md) give Copilot the code
+map, state-ownership rules, build commands, and security boundaries.
+Task-specific workflows are available as repository skills:
+
+| Skill | Use it for |
+| --- | --- |
+| [round-app-development](.github/skills/round-app-development/SKILL.md) | Adding apps, events, views, or serial commands |
+| [round-hardware-integration](.github/skills/round-hardware-integration/SKILL.md) | BSP, LVGL, touch, and firmware adapters |
+| [round-validation](.github/skills/round-validation/SKILL.md) | Host tests, simulator checks, and firmware/hardware validation scope |
+
+Open the repository in a supported Copilot client with repository custom
+instructions enabled. Describe the task in chat; Copilot can discover and load
+skills by their descriptions, or you can explicitly ask it to use a named skill.
+These are instructions and reusable workflows, not executable automation:
+they do not install ESP-IDF, enable cloud services, or verify hardware.
+No custom agent definitions or prompt files are included.
+
+Client support and settings vary; see GitHub's
+[repository instructions guide](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions)
+and [agent skills guide](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills)
+for discovery and setup.
+
 ## Sources and inspiration
 
 - [Waveshare board and case variants](https://www.waveshare.com/esp32-s3-touch-amoled-1.75.htm)
