@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 3.16)
+
+option(ROUND_HOST "Build the portable simulator and tests without ESP-IDF" OFF)
+if(ROUND_HOST)
+    project(round_foundation_host C)
+    set(CMAKE_C_STANDARD 11)
+    set(CMAKE_C_STANDARD_REQUIRED ON)
+    add_library(round_core
+        components/round_core/round_core.c
+        components/round_core/round_protocol.c
+        main/example_apps.c)
+    target_include_directories(round_core PUBLIC components/round_core/include main)
+    target_compile_options(round_core PRIVATE -Wall -Wextra -Werror -pedantic)
+    add_executable(round_simulator host/simulator.c)
+    target_link_libraries(round_simulator PRIVATE round_core)
+    enable_testing()
+    add_executable(round_tests tests/test_round.c)
+    target_link_libraries(round_tests PRIVATE round_core)
+    target_compile_options(round_tests PRIVATE -Wall -Wextra -Werror -pedantic)
+    add_test(NAME round_core COMMAND round_tests)
+else()
+    set(IDF_TARGET esp32s3)
+    include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+    project(round_foundation)
+endif()
