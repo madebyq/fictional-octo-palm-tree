@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  host:
+    name: Host (${{ matrix.name }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: GCC
+            cc: gcc
+            flags: ""
+          - name: Clang
+            cc: clang
+            flags: ""
+          - name: Clang sanitizers
+            cc: clang
+            flags: "-fsanitize=address,undefined -fno-omit-frame-pointer"
+    env:
+      CC: ${{ matrix.cc }}
+      ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Configure host build
+        env:
+          C_FLAGS: ${{ matrix.flags }}
+        run: >-
+          cmake -S . -B "$RUNNER_TEMP/round-build"
+          -DROUND_HOST=ON -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_C_FLAGS="$C_FLAGS"
+
+      - name: Build
+        run: cmake --build "$RUNNER_TEMP/round-build" --parallel 2
+
+      - name: Test
+        run: ctest --test-dir "$RUNNER_TEMP/round-build" --output-on-failure --no-tests=error
+
+      - name: Check simulator behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          output=$(printf '!working\n/app next\n@solar 1200 75\n/app next\n' |
+            "$RUNNER_TEMP/round-build/round_simulator")
+          printf '%s\n' "$output"
+          grep -Fx '[Round Foundation]' <<< "$output"
+          grep -Fx '[Agent companion]' <<< "$output"
+          grep -Fx 'Working' <<< "$output"
+          grep -Fx '[Solar dashboard]' <<< "$output"
+          grep -Fx 'Generation: 1200 W' <<< "$output"
+          grep -Fx 'Battery: 75%' <<< "$output"
+          grep -Fx 'Last received sample - not live' <<< "$output"

@@ -72,6 +72,18 @@ sample. Tests cover registration, navigation/wraparound, inactive-app updates,
 buffer termination, invalid events, numeric overflow, CRLF, timeout/clock
 wraparound, and recovery after oversized or malformed commands.
 
+## Continuous integration
+
+The [CI workflow](.github/workflows/ci.yml) runs on pushes, pull requests, and
+manual dispatch. It builds the portable targets with GCC and Clang, runs CTest,
+and checks the simulator's agent and solar output. A separate Clang configuration
+enables AddressSanitizer and UndefinedBehaviorSanitizer; sanitizer findings fail
+the job.
+
+CI uses read-only repository permissions and does not require secrets or download
+firmware components. It does **not** build ESP-IDF firmware, flash a device, or
+verify the physical display/touch; those remain separate validation steps.
+
 ## Serial integration contract
 
 Send ASCII lines over USB serial (115200 baud where required by the terminal).
